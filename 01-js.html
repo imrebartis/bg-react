@@ -1,18 +1,14 @@
-<body>
-    <div id="root"></div>
-    <script src="https://unpkg.com/react@16.0.0/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@16.0.0/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6.26.0/babel.js"></script>
-    <script type="text/babel">
-        function Message({message}) { return (
-        <div>
-            {message ? (
-            <div>{message}</div>
-            ) : (
-            <div>No Message</div>
-            )}
-        </div>
-        ) } ReactDOM.render(
-        <Message message={null} />, document.getElementById('root'), )
-    </script>
-</body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@16.0.0-rc.3/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@16.0.0-rc.3/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/babel-standalone@6.26.0/babel.js"></script>
+<script type="text/babel">
+    const rootElement = document.getElementById('root'); function tick() { const time = new Date().toLocaleTimeString(); const
+    element = ( // focus stays on the input field clicked & React rerenders only the input fields, not the whole page
+    <div>
+        It is
+        <input value={time} />
+        <input value={time} />
+    </div>
+    ); ReactDOM.render(element, rootElement) }; tick(); setInterval(tick, 1000)
+</script>
