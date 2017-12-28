@@ -79,11 +79,16 @@ class TodoApp extends Component {
           this.input = node;
         }} />
         <button onClick={() => {
+
+          if (this.input.value != '') {
           store.dispatch({
             type: 'ADD_TODO',
             text: this.input.value,
             id: nextTodoId++
           });
+          }
+
+
           this.input.value = '';
         }}>
           Add Todo
