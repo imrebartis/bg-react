@@ -1,90 +1,127 @@
 <body>
-<script src="https://unpkg.com/react@16.0.0/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@16.0.0/umd/react-dom.development.js"></script>
-<script src="https://unpkg.com/babel-standalone@6.26.0/babel.js"></script>
-<script src="https://unpkg.com/axios@0.16.2/dist/axios.min.js"></script>
+  <script src="https://unpkg.com/react@16.0.0/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@16.0.0/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6.26.0/babel.min.js"></script>
+
+  <script src="https://unpkg.com/redux@3.7.2/dist/redux.js"></script>
+  <script src="https://unpkg.com/react-redux@5.0.6/dist/react-redux.js"></script>
+
 <div id="root"></div>
 
 <script type="text/babel">
-class UserCompany extends React.Component {
-  state = {company: undefined, loaded: false}
-  fetchCompany = () => {
-    axios({
-      url: 'https://api.github.com/graphql',
-      method: 'post',
-      data: {
-        query: `{
-          user(login: "${this.props.username}") {
-            company
-          }
-        }`,
-      },
-      headers: {
-        Authorization: `bearer I DELETED THE TOKEN (settings developer settings personal access tokens read:user`,
-      },
-    }).then(
-      response => {
-        this.setState({
-          loaded: true,
-          company:
-            response.data.data.user.company,
-        })
-      },
-      error => {
-        this.setState({
-          error,
-          loaded: true,
-        })
-      },
-    )
-  }
-  componentDidMount() {
-    this.fetchCompany()
-  }
-  componentDidUpdate(prevProps) {
-    if (
-      prevProps.username !== this.props.username
-    ) {
-      this.fetchCompany()
-    }
-  }
-  render() {
-    return this.state.loaded
-      ? this.state.error
-        ? 'ERROR (You probably need to add your own token)'
-        : this.state.company || 'Unknown'
-      : '...'
-  }
-}
+const todo = (state, action) => {
+  switch (action.type) {
+    case 'ADD_TODO':
+      return {
+        id: action.id,
+        text: action.text,
+        completed: false
+      };
+    case 'TOGGLE_TODO':
+      if (state.id !== action.id) {
+        return state;
+      }
 
-class App extends React.Component {
-  state = {username: undefined}
-  handleSubmit = e => {
-    e.preventDefault()
-    this.setState({
-      username: this.inputNode.value,
-    })
+      return {
+        ...state,
+        completed: !state.completed
+      };
+    default:
+      return state;
   }
+};
+
+const todos = (state = [], action) => {
+  switch (action.type) {
+    case 'ADD_TODO':
+      return [
+        ...state,
+        todo(undefined, action)
+      ];
+    case 'TOGGLE_TODO':
+      return state.map(t =>
+        todo(t, action)
+      );
+    default:
+      return state;
+  }
+};
+
+const visibilityFilter = (
+  state = 'SHOW_ALL',
+  action
+) => {
+  switch (action.type) {
+    case 'SET_VISIBILITY_FILTER':
+      return action.filter;
+    default:
+      return state;
+  }
+};
+
+const { combineReducers } = Redux;
+const todoApp = combineReducers({
+  todos,
+  visibilityFilter
+});
+
+const { createStore } = Redux;
+const store = createStore(todoApp);
+
+const { Component } = React;
+
+let nextTodoId = 0;
+class TodoApp extends Component {
   render() {
-    const {username} = this.state
     return (
       <div>
-        <form onSubmit={this.handleSubmit}>
-          <input
-            ref={node => (this.inputNode = node)}
-          />
-        </form>
-        {username ? (
-          <UserCompany username={username} />
-        ) : null}
+        <input ref={node => {
+          this.input = node;
+        }} />
+        <button onClick={() => {
+          store.dispatch({
+            type: 'ADD_TODO',
+            text: this.input.value,
+            id: nextTodoId++
+          });
+          this.input.value = '';
+        }}>
+          Add Todo
+        </button>
+        <ul>
+          {this.props.todos.map(todo =>
+            <li key={todo.id}
+                onClick={() => {
+                  store.dispatch({
+                    type: 'TOGGLE_TODO',
+                    id: todo.id
+                  });         
+                }}
+                style={{
+                  textDecoration:
+                    todo.completed ?
+                      'line-through' :
+                      'none'
+                }}>
+              {todo.text}
+            </li>
+          )}
+        </ul>
       </div>
-    )
+    );
   }
 }
 
-ReactDOM.render(
-  <App />,
-  document.getElementById('root'),
-)
+const render = () => {
+  ReactDOM.render(
+    <TodoApp
+      todos={store.getState().todos}
+    />,
+    document.getElementById('root')
+  );
+};
+
+store.subscribe(render);
+render();
 </script>
 </body>
